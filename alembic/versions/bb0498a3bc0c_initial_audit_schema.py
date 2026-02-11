@@ -1,8 +1,8 @@
 """Initial Audit schema
 
-Revision ID: 0fac592358f5
+Revision ID: bb0498a3bc0c
 Revises:
-Create Date: 2026-02-10 12:47:15.895282
+Create Date: 2026-02-10 17:33:35.716708
 
 """
 
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "0fac592358f5"
+revision: str = "bb0498a3bc0c"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -35,6 +35,7 @@ def upgrade() -> None:
         sa.Column("old_data", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("new_data", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("changed_fields", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column("source", sa.String(length=50), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         schema="AUDIT",
@@ -43,7 +44,7 @@ def upgrade() -> None:
         "audit_templates",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
-        sa.Column("is_active", sa.Boolean(), nullable=True),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -75,7 +76,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("display_name", sa.String(length=255), nullable=False),
         sa.Column("type", sa.String(length=100), nullable=False),
-        sa.Column("is_active", sa.Boolean(), nullable=False),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -107,6 +108,7 @@ def upgrade() -> None:
         sa.Column("template_id", sa.UUID(), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("weightage", sa.Integer(), nullable=False),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -143,6 +145,7 @@ def upgrade() -> None:
         sa.Column("template_id", sa.UUID(), nullable=False),
         sa.Column("is_default", sa.Boolean(), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=True),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -181,10 +184,12 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("project_id", sa.Integer(), nullable=False),
         sa.Column("template_id", sa.UUID(), nullable=False),
-        sa.Column("scheduled_date", sa.Date(), nullable=False),
+        sa.Column("start", sa.DateTime(), nullable=False),
+        sa.Column("end", sa.DateTime(), nullable=False),
         sa.Column("status", sa.String(length=50), nullable=False),
         sa.Column("overall_score", sa.Integer(), nullable=True),
         sa.Column("rag_status", sa.String(length=10), nullable=True),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -223,7 +228,7 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("employee_id", sa.Integer(), nullable=False),
         sa.Column("role_id", sa.UUID(), nullable=False),
-        sa.Column("is_active", sa.Boolean(), nullable=False),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -263,6 +268,7 @@ def upgrade() -> None:
         sa.Column("audit_id", sa.UUID(), nullable=True),
         sa.Column("employee_id", sa.BigInteger(), nullable=True),
         sa.Column("role_type", sa.String(length=50), nullable=True),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -303,6 +309,7 @@ def upgrade() -> None:
         sa.Column("overall_score", sa.Integer(), nullable=True),
         sa.Column("rag_status", sa.String(length=10), nullable=True),
         sa.Column("report_json", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -338,6 +345,7 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("area_id", sa.UUID(), nullable=False),
         sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -374,6 +382,7 @@ def upgrade() -> None:
         sa.Column("text", sa.Text(), nullable=False),
         sa.Column("percentage", sa.Integer(), nullable=False),
         sa.Column("is_mandatory", sa.Boolean(), nullable=True),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -414,6 +423,7 @@ def upgrade() -> None:
         sa.Column("priority", sa.String(length=50), nullable=True),
         sa.Column("due_date", sa.Date(), nullable=True),
         sa.Column("status", sa.String(length=50), nullable=True),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -457,6 +467,7 @@ def upgrade() -> None:
         sa.Column("question_id", sa.UUID(), nullable=False),
         sa.Column("label", sa.String(length=255), nullable=False),
         sa.Column("value", sa.Integer(), nullable=False),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -495,6 +506,7 @@ def upgrade() -> None:
         sa.Column("score", sa.Integer(), nullable=True),
         sa.Column("comment", sa.Text(), nullable=True),
         sa.Column("recommendation", sa.Text(), nullable=True),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -540,6 +552,7 @@ def upgrade() -> None:
         sa.Column("file_url", sa.Text(), nullable=True),
         sa.Column("original_file_name", sa.String(length=255), nullable=True),
         sa.Column("mime_type", sa.String(length=100), nullable=True),
+        sa.Column("isactive", sa.Boolean(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

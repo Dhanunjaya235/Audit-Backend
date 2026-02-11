@@ -59,7 +59,7 @@ class MasterData(ModifyModel, Base):
     name = Column(String(255), nullable=False)
     display_name = Column(String(255), nullable=False)
     type = Column(String(100), nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
+    isactive = Column(Boolean, nullable=False, default=True)
 
     # Relationships
     employee_roles = relationship("EmployeeRoleMapping", back_populates="role")
@@ -74,7 +74,7 @@ class EmployeeRoleMapping(ModifyModel, Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid7_pk)
     employee_id = Column(Integer, ForeignKey("public.employee.id"), nullable=False)
     role_id = Column(UUID(as_uuid=True), ForeignKey("AUDIT.master_data.id"), nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
+    isactive = Column(Boolean, nullable=False, default=True)
 
     # Relationships
     role = relationship("MasterData", foreign_keys=[role_id], back_populates="employee_roles")
@@ -86,7 +86,9 @@ class AuditTemplate(ModifyModel, Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid7_pk)
     name = Column(String(255), nullable=False)
-    is_active = Column(Boolean, default=True)
+    isactive = Column(Boolean, nullable=False, default=True)
+
+    areas = relationship("AuditArea", back_populates="template", order_by="AuditArea.created_at")
 
 
 class AuditArea(ModifyModel, Base):
@@ -97,8 +99,10 @@ class AuditArea(ModifyModel, Base):
     template_id = Column(UUID, ForeignKey("AUDIT.audit_templates.id"), nullable=False)
     name = Column(String(255), nullable=False)
     weightage = Column(Integer, nullable=False)
+    isactive = Column(Boolean, nullable=False, default=True)
 
-    template = relationship("AuditTemplate", backref="areas")
+    template = relationship("AuditTemplate", back_populates="areas")
+    scopes = relationship("AuditScope", back_populates="area", order_by="AuditScope.created_at")
 
 
 class AuditScope(ModifyModel, Base):
@@ -108,8 +112,10 @@ class AuditScope(ModifyModel, Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid7_pk)
     area_id = Column(UUID, ForeignKey("AUDIT.audit_areas.id"), nullable=False)
     name = Column(String(255), nullable=False)
+    isactive = Column(Boolean, nullable=False, default=True)
 
-    area = relationship("AuditArea", backref="scopes")
+    area = relationship("AuditArea", back_populates="scopes")
+    questions = relationship("AuditQuestion", back_populates="scope")
 
 
 class AuditQuestion(ModifyModel, Base):
@@ -121,8 +127,12 @@ class AuditQuestion(ModifyModel, Base):
     text = Column(Text, nullable=False)
     percentage = Column(Integer, nullable=False)
     is_mandatory = Column(Boolean, default=True)
+    isactive = Column(Boolean, nullable=False, default=True)
 
-    scope = relationship("AuditScope", backref="questions")
+    scope = relationship("AuditScope", back_populates="questions")
+    options = relationship(
+        "AuditQuestionOption", back_populates="question", order_by="AuditQuestionOption.created_at"
+    )
 
 
 class AuditQuestionOption(ModifyModel, Base):
@@ -133,8 +143,9 @@ class AuditQuestionOption(ModifyModel, Base):
     question_id = Column(UUID, ForeignKey("AUDIT.audit_questions.id"), nullable=False)
     label = Column(String(255), nullable=False)
     value = Column(Integer, nullable=False)
+    isactive = Column(Boolean, nullable=False, default=True)
 
-    question = relationship("AuditQuestion", backref="options")
+    question = relationship("AuditQuestion", back_populates="options")
 
 
 class Audit(Base, ModifyModel):
@@ -146,11 +157,13 @@ class Audit(Base, ModifyModel):
     project_id = Column(Integer, ForeignKey("public.projects.id"), nullable=False)
     template_id = Column(UUID, ForeignKey("AUDIT.audit_templates.id"), nullable=False)
 
-    scheduled_date = Column(Date, nullable=False)
+    start = Column(DateTime, nullable=False)
+    end = Column(DateTime, nullable=False)
     status = Column(String(50), nullable=False)  # Draft/Scheduled/InProgress/Completed/Closed
 
     overall_score = Column(Integer)
     rag_status = Column(String(10))
+    isactive = Column(Boolean, nullable=False, default=True)
 
     project = relationship("Projects")
     template = relationship("AuditTemplate")
@@ -164,6 +177,7 @@ class AuditParticipant(Base, ModifyModel):
     audit_id = Column(UUID, ForeignKey("AUDIT.audits.id"))
     employee_id = Column(BigInteger, ForeignKey("public.employee.id"))
     role_type = Column(String(50))  # Auditor, Delivery, Lead, Viewer
+    isactive = Column(Boolean, nullable=False, default=True)
 
     audit = relationship("Audit", backref="participants")
 
@@ -182,6 +196,7 @@ class AuditResponse(Base, ModifyModel):
 
     comment = Column(Text)
     recommendation = Column(Text)
+    isactive = Column(Boolean, nullable=False, default=True)
 
     audit = relationship("Audit", backref="responses")
     question = relationship("AuditQuestion")
@@ -198,6 +213,7 @@ class AuditEvidence(Base, ModifyModel):
     file_url = Column(Text)
     original_file_name = Column(String(255))
     mime_type = Column(String(100))
+    isactive = Column(Boolean, nullable=False, default=True)
 
 
 class AuditReportSnapshot(Base, ModifyModel):
@@ -210,6 +226,7 @@ class AuditReportSnapshot(Base, ModifyModel):
     overall_score = Column(Integer)
     rag_status = Column(String(10))
     report_json = Column(JSONB)  # frozen report
+    isactive = Column(Boolean, nullable=False, default=True)
 
 
 class AuditActionItem(Base, ModifyModel):
@@ -226,6 +243,7 @@ class AuditActionItem(Base, ModifyModel):
     priority = Column(String(50))
     due_date = Column(Date)
     status = Column(String(50))  # Open/InProgress/Closed
+    isactive = Column(Boolean, nullable=False, default=True)
 
 
 class AuditProjectTemplate(Base, ModifyModel):
@@ -239,6 +257,7 @@ class AuditProjectTemplate(Base, ModifyModel):
 
     is_default = Column(Boolean, default=True)
     is_active = Column(Boolean, default=True)
+    isactive = Column(Boolean, nullable=False, default=True)
 
 
 class AuditChangeLog(Base):
@@ -259,5 +278,6 @@ class AuditChangeLog(Base):
     old_data = Column(JSONB)  # before change
     new_data = Column(JSONB)  # after change
     changed_fields = Column(JSONB)  # diff only
+    isactive = Column(Boolean, nullable=False, default=True)
 
     source = Column(String(50))  # API / SYSTEM / IMPORT
